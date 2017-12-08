@@ -13,7 +13,13 @@ BRLTTY_LICENSE_FILES = LICENSE-GPL LICENSE-LGPL
 
 BRLTTY_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES)
 
-BRLTTY_CONF_OPTS = --disable-java-bindings --disable-lisp-bindings --disable-ocaml-bindings --disable-python-bindings --disable-tcl-bindings
+BRLTTY_CONF_OPTS = \
+	--disable-java-bindings \
+	--disable-lisp-bindings \
+	--disable-ocaml-bindings \
+	--disable-python-bindings \
+	--disable-tcl-bindings \
+	--without-mikropuhe --without-swift --without-theta --without-viavoice
 
 ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
 BRLTTY_DEPENDENCIES += bluez5_utils
@@ -27,6 +33,13 @@ BRLTTY_DEPENDENCIES += espeak
 BRLTTY_CONF_OPTS += --with-espeak=$(TARGET_DIR)/usr
 else
 BRLTTY_CONF_OPTS += --without-espeak
+endif
+
+ifeq ($(BR2_PACKAGE_FLITE),y)
+BRLTTY_DEPENDENCIES += flite
+BRLTTY_CONF_OPTS += --with-flite=$(STAGING_DIR)/usr
+else
+BRLTTY_CONF_OPTS += --without-flite
 endif
 
 ifeq ($(BR2_PACKAGE_ICU),y)
