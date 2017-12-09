@@ -19,7 +19,8 @@ BRLTTY_CONF_OPTS = \
 	--disable-ocaml-bindings \
 	--disable-python-bindings \
 	--disable-tcl-bindings \
-	--without-mikropuhe --without-swift --without-theta --without-viavoice
+	--without-mikropuhe --without-speechd --without-swift \
+	--without-theta --without-viavoice
 
 ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
 BRLTTY_DEPENDENCIES += bluez5_utils
