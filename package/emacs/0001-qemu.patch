@@ -1,0 +1,172 @@
+diff --git a/admin/grammars/Makefile.in b/admin/grammars/Makefile.in
+index 740168fc73..43fe11eaee 100644
+--- a/admin/grammars/Makefile.in
++++ b/admin/grammars/Makefile.in
+@@ -45,7 +45,7 @@ am__v_at_1 =
+ unexport EMACSDATA EMACSDOC EMACSPATH
+ 
+ EMACS = ${top_builddir}/src/emacs
+-emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
++emacs = EMACSLOADPATH= ${EMACS} -batch --no-site-file --no-site-lisp
+ 
+ make_bovine = ${emacs} -l semantic/bovine/grammar -f bovine-batch-make-parser
+ make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
+diff --git a/admin/unidata/Makefile.in b/admin/unidata/Makefile.in
+index c389cb3f53..66d7587a58 100644
+--- a/admin/unidata/Makefile.in
++++ b/admin/unidata/Makefile.in
+@@ -31,7 +31,7 @@ top_builddir =
+ 
+ EMACS = ${top_builddir}/src/emacs
+ unidir = ${top_srcdir}/lisp/international
+-emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
++emacs = ${EMACS} -batch --no-site-file --no-site-lisp
+ 
+ lparen = (
+ unifiles = $(addprefix ${unidir}/,$(sort $(shell sed -n 's/^[ \t][ \t]*${lparen}"\(uni-[^"]*\)"$$/\1/p' ${srcdir}/unidata-gen.el)))
+diff --git a/configure.ac b/configure.ac
+index 562b19afe6..df2fc99836 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -298,6 +298,11 @@ AC_DEFUN
+     [string giving default POP mail host])],
+     AC_DEFINE_UNQUOTED(MAILHOST, ["$withval"], [String giving fallback POP mail host.]))
+ 
++AC_ARG_WITH([emulator],[AS_HELP_STRING([--with-emulator=EMULATOR],
++    [Emulator to use when executing target binaries])],
++    EMULATOR="$withval"
++    AC_SUBST(EMULATOR))
++
+ AC_ARG_WITH([sound],[AS_HELP_STRING([--with-sound=VALUE],
+   [compile with sound support (VALUE one of: yes, alsa, oss, bsd-ossaudio, no;
+ default yes).  Only for GNU/Linux, FreeBSD, NetBSD, MinGW, Cygwin.])],
+diff --git a/leim/Makefile.in b/leim/Makefile.in
+index f18010af60..af55e3fc4b 100644
+--- a/leim/Makefile.in
++++ b/leim/Makefile.in
+@@ -53,7 +53,7 @@ EMACS =
+ 
+ # How to run Emacs.
+ # Prevent any setting of EMACSLOADPATH in user environment causing problems.
+-RUN_EMACS = EMACSLOADPATH= '$(EMACS)' -batch --no-site-file --no-site-lisp
++RUN_EMACS = EMACSLOADPATH= $(EMACS) -batch --no-site-file --no-site-lisp
+ 
+ MKDIR_P = @MKDIR_P@
+ 
+diff --git a/lisp/Makefile.in b/lisp/Makefile.in
+index de3dc18617..884417d3c1 100644
+--- a/lisp/Makefile.in
++++ b/lisp/Makefile.in
+@@ -56,7 +56,7 @@ FIND_DELETE =
+ # We never change directory before running Emacs, so a relative file
+ # name is fine, and makes life easier.  If we need to change
+ # directory, we can use emacs --chdir.
+-EMACS = ../src/emacs${EXEEXT}
++EMACS = @EMULATOR@ $(CURDIR)/../src/emacs${EXEEXT}
+ 
+ # Command line flags for Emacs.
+ 
+@@ -106,7 +106,7 @@ COMPILE_FIRST =
+ 
+ # The actual Emacs command run in the targets below.
+ # Prevent any setting of EMACSLOADPATH in user environment causing problems.
+-emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
++emacs = EMACSLOADPATH= $(EMACS) $(EMACSOPT)
+ 
+ ## Subdirectories, relative to builddir.
+ SUBDIRS = $(sort $(shell find ${srcdir} -type d -print))
+diff --git a/src/Makefile.in b/src/Makefile.in
+index b395627893..d397dc4080 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -54,7 +54,7 @@ lwlibdir =
+ # Configuration files for .o files to depend on.
+ config_h = config.h $(srcdir)/conf_post.h
+ 
+-bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
++bootstrap_exe = $(CURDIR)/bootstrap-emacs$(EXEEXT)
+ 
+ ## ns-app if HAVE_NS, else empty.
+ OTHER_FILES = @OTHER_FILES@
+@@ -320,7 +320,9 @@ INTERVALS_H =
+ 
+ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
+ 
+-RUN_TEMACS = ./temacs
++RUN_TEMACS = temacs
++
++EMULATOR = @EMULATOR@
+ 
+ # Whether builds should contain details. '--no-build-details' or empty.
+ BUILD_DETAILS = @BUILD_DETAILS@
+@@ -506,7 +508,7 @@ LIBES =
+ ## in practice this rule was always run anyway.
+ $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
+   bootstrap-emacs$(EXEEXT) FORCE
+-	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
++	$(MAKE) -C ../admin/unidata all EMACS="$(EMULATOR) $(bootstrap_exe)"
+ 
+ ## We require charprop.el to exist before ucs-normalize.el is
+ ## byte-compiled, because ucs-normalize.el needs to load 2 uni-*.el files.
+@@ -539,7 +541,7 @@ emacs$(EXEEXT):
+ ifeq ($(CANNOT_DUMP),yes)
+ 	ln -f temacs$(EXEEXT) $@
+ else
+-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
++	LC_ALL=C $(EMULATOR) $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+   ifneq ($(PAXCTL_dumped),)
+ 	$(PAXCTL_dumped) $@
+   endif
+@@ -560,9 +562,9 @@ emacs$(EXEEXT):
+ $(etc)/DOC: lisp.mk $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
+ 	$(AM_V_GEN)$(MKDIR_P) $(etc)
+ 	-$(AM_V_at)rm -f $(etc)/DOC
+-	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
++	$(AM_V_at)$(EMULATOR) $(libsrc)/make-docfile -d $(srcdir) \
+ 	  $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
+-	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
++	$(AM_V_at)$(EMULATOR) $(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
+ 	  $(shortlisp)
+ 
+ $(libsrc)/make-docfile$(EXEEXT): $(lib)/libgnu.a
+@@ -583,7 +585,7 @@ am__v_GLOBALS_0 =
+ am__v_GLOBALS_1 =
+ 
+ gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
+-	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > globals.tmp
++	$(AM_V_GLOBALS)$(EMULATOR) $(libsrc)/make-docfile -d $(srcdir) -g $(obj) > globals.tmp
+ 	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change globals.tmp globals.h
+ 	$(AM_V_at)echo timestamp > $@
+ 
+@@ -726,7 +728,7 @@ .PHONY:
+ ## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
+ 
+ %.elc: %.el | bootstrap-emacs$(EXEEXT)
+-	@$(MAKE) -C ../lisp EMACS="$(bootstrap_exe)" THEFILE=$< $<c
++	@$(MAKE) -C ../lisp EMACS="$(EMULATOR) $(bootstrap_exe)" THEFILE=$< $<c
+ 
+ ## VCSWITNESS points to the file that holds info about the current checkout.
+ ## We use it as a heuristic to decide when to rebuild loaddefs.el.
+@@ -734,7 +736,7 @@ .PHONY:
+ VCSWITNESS =
+ 
+ $(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
+-	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
++	$(MAKE) -C ../lisp autoloads EMACS="$(EMULATOR) $(bootstrap_exe)"
+ 
+ ## Dump an Emacs executable named bootstrap-emacs containing the
+ ## files from loadup.el in source form.
+@@ -743,11 +745,11 @@ bootstrap-emacs$(EXEEXT):
+ ifeq ($(CANNOT_DUMP),yes)
+ 	ln -f temacs$(EXEEXT) $@
+ else
+-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
++	$(EMULATOR) $(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+   ifneq ($(PAXCTL_dumped),)
+ 	$(PAXCTL_dumped) emacs$(EXEEXT)
+   endif
+ 	mv -f emacs$(EXEEXT) $@
+ endif
+ 	@: Compile some files earlier to speed up further compilation.
+-	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
++	$(MAKE) -C ../lisp compile-first EMACS="$(EMULATOR) $(bootstrap_exe)"
