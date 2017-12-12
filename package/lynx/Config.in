@@ -1,7 +1,8 @@
 config BR2_PACKAGE_LYNX
 	bool "lynx"
-	select BR2_PACKAGE_NCURSES
+	select BR2_PACKAGE_NCURSES if !BR2_PACKAGE_SLANG
 	select BR2_PACKAGE_OPENSSL if !BR2_PACKAGE_GNUTLS
 	help
-	  Text mode web browser.
+	  The Text Web-Browser.
 
+	  http://lynx.invisible-island.net/
