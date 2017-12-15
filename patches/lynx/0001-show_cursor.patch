@@ -1,0 +1,26 @@
+Index: lynx2.8.9dev.16/lynx.cfg
+===================================================================
+--- lynx2.8.9dev.16.orig/lynx.cfg
++++ lynx2.8.9dev.16/lynx.cfg
+@@ -809,7 +809,7 @@ DEFAULT_INDEX_FILE:http://scout.wisc.edu
+ # 'o'ptions menu and saved in the RC file, and always can be toggled
+ # via the -show_cursor command line switch.
+ #
+-#SHOW_CURSOR:FALSE
++#SHOW_CURSOR:TRUE
+ 
+ .h2 UNDERLINE_LINKS
+ # UNDERLINE_LINKS controls whether links are underlined by default, or shown
+Index: lynx2.8.9dev.16/userdefs.h
+===================================================================
+--- lynx2.8.9dev.16.orig/userdefs.h
++++ lynx2.8.9dev.16/userdefs.h
+@@ -975,7 +975,7 @@
+  * and configuration defaults, and the default always can be toggled
+  * via the -show_cursor command line switch.
+  */
+-#define SHOW_CURSOR FALSE
++#define SHOW_CURSOR TRUE
+ 
+ /******************************
+ * UNDERLINE_LINKS controls whether links are underlined by default, or shown
