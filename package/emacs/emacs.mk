@@ -16,6 +16,7 @@ EMACS_AUTORECONF_OPTS = -fi -Im4
 #EMACS_SITE = $(BR2_GNU_MIRROR)/emacs
 
 EMACS_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES) dbus gnutls jansson libxml2 zlib
+EMACS_CONF_OPTS = --without-x
 
 ifeq ($(BR2_INIT_SYSTEMD),y)
 EMACS_DEPENDENCIES += systemd
